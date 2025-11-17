@@ -5,6 +5,9 @@ import { DecodeFlightsFile } from './decode-flights.contract';
 @Injectable()
 export class DecodeFlightsService {
     async decodeFlights(data: DecodeFlightsFile): Promise<any> {
+        if(!data || !data.buffer) {
+            throw new Error('Invalid file data');
+        }
 
         const decodedData = Buffer.from(data.buffer, 'base64').toString('utf-8');
 
