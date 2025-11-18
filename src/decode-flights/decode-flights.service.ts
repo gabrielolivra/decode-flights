@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { gunzipSync } from 'zlib';
 import { DecodeFlightsFile } from './decode-flights.contract';
-import { json } from 'stream/consumers';
+
 
 @Injectable()
 export class DecodeFlightsService {
@@ -16,11 +16,23 @@ export class DecodeFlightsService {
 
         const jsonDecoded = JSON.parse(decodedData);
 
-        const base64Data = jsonDecoded.data.$binary.base64;
+        const base64Data = jsonDecoded?.data?.$binary?.base64;
+
+        if(this.isNullOrEmpty(base64Data)) {
+            throw new BadRequestException('Invalid encoded data');
+        }
 
         const compressedBuffer = Buffer.from(base64Data, 'base64');
 
+        if(compressedBuffer.length === 0) {
+            throw new BadRequestException('Decompressed data is empty');
+        }
+
         const decompressedBuffer = gunzipSync(compressedBuffer);
+
+        if(decompressedBuffer.length === 0) {
+            throw new BadRequestException('Decompressed data is empty');
+        }
 
         const decompressedData = decompressedBuffer.toString('utf-8');
 
